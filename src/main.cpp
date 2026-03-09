@@ -78,8 +78,15 @@ void updateHeader() {
 void updateBody() {
     body.fillCanvas(0);
     body.setTextFont(1);
-    body.setTextSize(5);
     body.setTextColor(15);
+
+    // Auto-size text
+    if (currentStatus.length() > 25) {
+        body.setTextSize(3);
+    } else {
+        body.setTextSize(5);
+    }
+
     body.drawString(currentStatus, 20, 20);
 
     // Get time from ESP32 RTC
@@ -102,36 +109,46 @@ void handleRoot() {
         "<a href='/office'>In Office</a><br>"
         "<a href='/labs'>In Labs</a><br>"
         "<a href='/home'>At Home</a><br>"
-        "<a href='/meeting'>In a meeting</a><br>";
+        "<a href='/meeting'>In a meeting</a><br>"
+        "<form action='/custom'>"
+        "Custom: <input name='text' type='text'>"
+        "<input type='submit' value='Set'>"
+        "</form>";
     server.send(200, "text/html", html);
 }
 
 void handleOffice() {
     currentStatus = "In the office - just knock";
     updateBody();
-    // updateFooter();
     server.send(200, "text/html", "Updated to: In Office");
 }
 
 void handleMeeting() {
     currentStatus = "In a meeting";
     updateBody();
-    // updateFooter();
     server.send(200, "text/html", "Updated to: In Meeting");
 }
 
 void handleLabs() {
     currentStatus = "In the Undergraduate Labs";
     updateBody();
-    // updateFooter();
     server.send(200, "text/html", "Updated to: In the Labs");
 }
 
 void handleHome() {
     currentStatus = "At Home";
     updateBody();
-    // updateFooter();
     server.send(200, "text/html", "Updated to: At Home");
+}
+
+void handleCustom() {
+    if (server.hasArg("text")) {
+        currentStatus = server.arg("text");
+    } else {
+        currentStatus = "Custom status";
+    }
+    updateBody();
+    server.send(200, "text/html", "Updated to: " + currentStatus);
 }
 
 void setup() {
@@ -174,6 +191,7 @@ void setup() {
     server.on("/labs", handleLabs);
     server.on("/home", handleHome);
     server.on("/meeting", handleMeeting);
+    server.on("/custom", handleCustom);
 
     server.begin();
 }
