@@ -181,7 +181,6 @@ void setup() {
     // Configure footer
     configTime(0, 0, "pool.ntp.org");
 
-    // IP: 138.38.226.218
     currentStatus = "Waiting for an update..."; // IP: " + WiFi.localIP().toString();
     updateBody();
 
@@ -204,3 +203,4 @@ void loop() {
         lastBatteryUpdate = millis();
     }
 }
+
