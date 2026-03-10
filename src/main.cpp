@@ -75,19 +75,65 @@ void updateHeader() {
     header.pushCanvas(0, 0, UPDATE_MODE_GC16);
 }
 
+void drawCat(M5EPD_Canvas &c, int x, int y) {
+    // Head
+    c.fillCircle(x, y, 20, 15);
+
+    // Left ear (two circles: outer white, inner gray)
+    c.fillCircle(x - 14, y - 22, 8, 15);
+    c.fillCircle(x - 14, y - 22, 4, 10);
+
+    // Right ear
+    c.fillCircle(x + 14, y - 22, 8, 15);
+    c.fillCircle(x + 14, y - 22, 4, 10);
+
+    // Eyes (black circles with white shine)
+    c.fillCircle(x - 8, y - 4, 5, 0);
+    c.fillCircle(x + 8, y - 4, 5, 0);
+    c.fillCircle(x - 6, y - 6, 2, 15);
+    c.fillCircle(x + 10, y - 6, 2, 15);
+
+    // Nose
+    c.fillCircle(x, y + 5, 3, 8);
+
+    // Mouth
+    c.drawLine(x, y + 8, x - 6, y + 14, 0);
+    c.drawLine(x, y + 8, x + 6, y + 14, 0);
+
+    // Whiskers left (white — visible on black background)
+    c.drawLine(x - 5, y + 3,  x - 32, y,      15);
+    c.drawLine(x - 5, y + 5,  x - 32, y + 5,  15);
+    c.drawLine(x - 5, y + 8,  x - 32, y + 11, 15);
+
+    // Whiskers right
+    c.drawLine(x + 5, y + 3,  x + 32, y,      15);
+    c.drawLine(x + 5, y + 5,  x + 32, y + 5,  15);
+    c.drawLine(x + 5, y + 8,  x + 32, y + 11, 15);
+}
+
+void drawWrappedText(M5EPD_Canvas &c, String text, int x, int y, int maxChars, int lineH) {
+    int curY = y;
+    while (text.length() > 0) {
+        if ((int)text.length() <= maxChars) {
+            c.drawString(text, x, curY);
+            break;
+        }
+        int breakAt = maxChars;
+        for (int i = maxChars; i > 0; i--) {
+            if (text[i] == ' ') { breakAt = i; break; }
+        }
+        c.drawString(text.substring(0, breakAt), x, curY);
+        text = text.substring(breakAt + 1);
+        curY += lineH;
+    }
+}
+
 void updateBody() {
     body.fillCanvas(0);
     body.setTextFont(1);
     body.setTextColor(15);
-
-    // Auto-size text
-    if (currentStatus.length() > 25) {
-        body.setTextSize(3);
-    } else {
-        body.setTextSize(5);
-    }
-
-    body.drawString(currentStatus, 20, 20);
+    body.setTextSize(5);
+    drawWrappedText(body, currentStatus, 20, 20, 31, 45);
 
     // Get time from ESP32 RTC
     struct tm timeinfo;
@@ -95,10 +141,12 @@ void updateBody() {
     if (getLocalTime(&timeinfo)) {
         char buffer[32];
         strftime(buffer, sizeof(buffer), "Last updated: %H:%M", &timeinfo);
-        body.drawString(buffer, 20, 120);
+        body.drawString(buffer, 20, 155);
     } else {
-        body.drawString(">>> Last updated: --:--", 20, 120);
+        body.drawString("Last updated: --:--", 20, 155);
     }
+
+    drawCat(body, 820, 173);
 
     body.pushCanvas(0, 120, UPDATE_MODE_GC16);
 }
