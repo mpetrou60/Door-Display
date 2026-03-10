@@ -116,14 +116,29 @@ void drawCat(M5EPD_Canvas &c, int x, int y) {
     c.drawLine(x + 8, y + 9, x + 34, y + 12, 0);
 }
 
+void drawWrappedText(M5EPD_Canvas &c, String text, int x, int y, int maxChars, int lineH) {
+    int curY = y;
+    while (text.length() > 0) {
+        if ((int)text.length() <= maxChars) {
+            c.drawString(text, x, curY);
+            break;
+        }
+        int breakAt = maxChars;
+        for (int i = maxChars; i > 0; i--) {
+            if (text[i] == ' ') { breakAt = i; break; }
+        }
+        c.drawString(text.substring(0, breakAt), x, curY);
+        text = text.substring(breakAt + 1);
+        curY += lineH;
+    }
+}
+
 void updateBody() {
     body.fillCanvas(0);
     body.setTextFont(1);
     body.setTextColor(15);
     body.setTextSize(5);
-    body.setTextWrap(true);
-    body.setCursor(20, 20);
-    body.print(currentStatus);
+    drawWrappedText(body, currentStatus, 20, 20, 31, 45);
 
     // Get time from ESP32 RTC
     struct tm timeinfo;
